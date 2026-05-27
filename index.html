@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EOSB - End of Semester Banquet Lucky Draw</title>
+    <style>
+        /* Base styles and background configuration */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('banquet.png') no-repeat center center/cover;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        /* Fixed Fullscreen Layout to prevent UI shifts */
+        .container {
+            width: 95vw;
+            height: 90vh;
+            max-width: 1200px;
+            max-height: 800px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+            display: table;
+            table-layout: fixed;
+        }
+
+        .row-header { display: table-row; height: 18%; }
+        .row-info { display: table-row; height: 8%; }
+        .row-display { display: table-row; height: 44%; }
+        .row-buttons { display: table-row; height: 12%; }
+        .row-history { display: table-row; height: 18%; }
+
+        .cell-container {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        /* Top Header Section */
+        header h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #ffffff 40%, #ff7eb3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            line-height: 1.2;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.75);
+            text-transform: uppercase;
+        }
+
+        /* Info Badge Area (Fixed Max 150) */
+        .info-badge {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 6px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 0.5px;
+        }
+
+        /* Centralized Digit Wrapper Layout */
+        .display-wrapper {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 650px;
+            height: 250px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: inset 0 0 30px rgba(255,255,255,0.15), 0 20px 50px rgba(0,0,0,0.3);
+            border-radius: 30px;
+        }
+
+        /* Individual Digit Box Styles */
+        .digit-box {
+            width: 110px;
+            height: 160px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: inset 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Digit Gradient Text */
+        .digit {
+            font-size: 9rem;
+            font-weight: 900;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            line-height: 1;
+            background: linear-gradient(180deg, #ffffff 25%, #ff9a9e 60%, #fecfef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(255, 154, 158, 0.5));
+        }
+
+        /* Pop Animation for individual digit lock */
+        @keyframes digitPop {
+            0% { transform: scale(0.7); filter: blur(4px); }
+            70% { transform: scale(1.15); filter: blur(0); }
+            100% { transform: scale(1); }
+        }
+
+        .pop-animation {
+            animation: digitPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Action Controls Layout */
+        .btn-container {
+            display: inline-block;
+        }
+
+        button {
+            padding: 14px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            outline: none;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 10px;
+            display: inline-block;
+        }
+
+        #draw-btn {
+            background: linear-gradient(90deg, #ffffff 0%, #f5f5f7 100%);
+            color: #111122;
+            box-shadow: 0 10px 25px rgba(255,255,255,0.25);
+        }
+
+        #draw-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255,255,255,0.45);
+            background: #ffffff;
+        }
+
+        #reset-btn {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        #reset-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        button:active:not(:disabled) { transform: translateY(1px); }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* History Status Board Structuring */
+        .history-board {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 15px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            height: 100%;
+        }
+
+        .history-board h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 8px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .history-list {
+            display: block;
+            width: 100%;
+            height: 65px;
+            overflow-y: auto;
+            white-space: normal;
+        }
+
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.25);
+            border-radius: 10px;
+        }
+
+        .history-item {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .history-item:last-child {
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.5);
+            border: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row-header">
+            <div class="cell-container">
+                <header>
+                    <h1>EOSB</h1>
+                    <p>End of Semester Banquet</p>
+                </header>
+            </div>
+        </div>
+
+        <div class="row-info">
+            <div class="cell-container">
+                <div class="info-badge">Target Range: 1 ~ 150</div>
+            </div>
+        </div>
+
+        <div class="row-display">
+            <div class="cell-container">
+                <div class="display-wrapper">
+                    <div class="digit-box"><div class="digit" id="digit-100">-</div></div>
+                    <div class="digit-box"><div class="digit" id="digit-10">-</div></div>
+                    <div class="digit-box"><div class="digit" id="digit-1">-</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-buttons">
+            <div class="cell-container">
+                <div class="btn-container">
+                    <button id="draw-btn" onclick="startDraw()">Draw Number</button>
+                    <button id="reset-btn" onclick="resetDraw()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-history">
+            <div class="cell-container">
+                <div class="history-board">
+                    <h3>Recent Draws (No Duplicates)</h3>
+                    <div class="history-list" id="history-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const maxN = 150; // Max number fixed to 150 as requested
+        let drawnNumbers = [];
+        let isDrawing = false;
+
+        const d100 = document.getElementById('digit-100');
+        const d10 = document.getElementById('digit-10');
+        const d1 = document.getElementById('digit-1');
+        const drawBtn = document.getElementById('draw-btn');
+        const historyList = document.getElementById('history-list');
+
+        function startDraw() {
+            if (isDrawing) return;
+
+            if (drawnNumbers.length >= maxN) {
+                alert("All numbers (1-150) have been drawn! Please reset to start over.");
+                return;
+            }
+
+            isDrawing = true;
+            drawBtn.disabled = true;
+
+            // Remove previous animations
+            d100.classList.remove('pop-animation');
+            d10.classList.remove('pop-animation');
+            d1.classList.remove('pop-animation');
+
+            // Determine final number behind the scenes immediately to safeguard uniqueness
+            let finalNumber;
+            while (true) {
+                finalNumber = Math.floor(Math.random() * maxN) + 1;
+                if (!drawnNumbers.includes(finalNumber)) {
+                    break;
+                }
+            }
+            drawnNumbers.push(finalNumber);
+
+            // Parse final digits (e.g., 42 -> 100s: 0, 10s: 4, 1s: 2)
+            const f100 = Math.floor(finalNumber / 100);
+            const f10 = Math.floor((finalNumber % 100) / 10);
+            const f1 = finalNumber % 10;
+
+            // Setup rolling configurations for each digit lane
+            let elapsed = 0;
+            const stepTime = 40;
+            
+            // 100s stops at 1200ms, 10s stops at 2000ms, 1s stops at 2800ms
+            const interval100 = setInterval(() => {
+                d100.innerText = Math.floor(Math.random() * 2); // 100s digit can only be 0 or 1 for range <= 150
+            }, stepTime);
+
+            const interval10 = setInterval(() => {
+                d10.innerText = Math.floor(Math.random() * 10);
+            }, stepTime);
+
+            const interval1 = setInterval(() => {
+                d1.innerText = Math.floor(Math.random() * 10);
+            }, stepTime);
+
+            // Sequential Stopping Sequence to create suspense
+            setTimeout(() => {
+                clearInterval(interval100);
+                d100.innerText = f100;
+                d100.classList.add('pop-animation');
+            }, 1200);
+
+            setTimeout(() => {
+                clearInterval(interval10);
+                d10.innerText = f10;
+                d10.classList.add('pop-animation');
+            }, 2000);
+
+            setTimeout(() => {
+                clearInterval(interval1);
+                d1.innerText = f1;
+                d1.classList.add('pop-animation');
+                
+                // Drawing sequence fully finalized here
+                finalizeDraw(finalNumber);
+            }, 2800);
+        }
+
+        function finalizeDraw(finalNumber) {
+            // Update the history board log
+            const historyItem = document.createElement('div');
+            historyItem.classList.add('history-item');
+            historyItem.innerText = `#${drawnNumbers.length}: ${finalNumber}`;
+            historyList.appendChild(historyItem);
+            historyList.scrollTop = historyList.scrollHeight;
+
+            isDrawing = false;
+            drawBtn.disabled = false;
+        }
+
+        function silentReset() {
+            drawnNumbers = [];
+            d100.innerText = "-";
+            d100.classList.remove('pop-animation');
+            d10.innerText = "-";
+            d10.classList.remove('pop-animation');
+            d1.innerText = "-";
+            d1.classList.remove('pop-animation');
+            historyList.innerHTML = "";
+            drawBtn.disabled = false;
+        }
+
+        function resetDraw() {
+            if(confirm("Are you sure you want to clear all draw history and restart?")) {
+                silentReset();
+            }
+        }
+    </script>
+</body>
+</html>
